@@ -9,6 +9,8 @@ add_library(
     gibline
     gibline.cpp
     gibline.h
+    terminal.cpp
+    terminal.h
 )
 target_include_directories(gibline PUBLIC .)
 
