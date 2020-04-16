@@ -11,6 +11,7 @@ add_library(
     gibline.h
     terminal.cpp
     terminal.h
+    termnames.h
 )
 target_include_directories(gibline PUBLIC .)
 
