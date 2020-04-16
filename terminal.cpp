@@ -46,7 +46,7 @@ TermInfo TermInfo::from_env() {
   return TermInfo::from_file(terminfo_path);
 }
 
-std::string_view TermInfo::query_string(const std::string_view &query) const {
+std::string_view TermInfo::query_string(const std::string_view query) const {
   return strings_.at(query);
 }
 

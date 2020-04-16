@@ -20,7 +20,7 @@ class TermInfo {
   using NumberMap = std::map<std::string_view, int32_t>;
   using StringMap = std::map<std::string_view, std::string>;
 
-  std::string_view query_string(const std::string_view &query) const;
+  std::string_view query_string(const std::string_view query) const;
 
  private:
   TermInfo(const TermInfo &) = delete;
