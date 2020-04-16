@@ -110,8 +110,9 @@ Engine &engine() {
 // Clear the current line, then print prompt and the line contents.
 void redraw(const Cursor &cursor, std::string_view prompt,
             terminal::Terminal *term) {
-  term->write(ansi::PULL_LEFT);
-  term->write(ansi::CLEAR);
+  const auto &tinfo = term->terminfo();
+  term->write(tinfo.query_string("carriage_return"));
+  term->write(tinfo.query_string("clr_eol"));
   term->write(prompt);
   term->write(cursor.line());
 }
