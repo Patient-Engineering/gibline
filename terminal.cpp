@@ -64,11 +64,11 @@ TermInfo TermInfo::from_file(const std::filesystem::path &path) {
     throw std::runtime_error("Unknown terminfo type");
   }
 
-  int16_t names_size{read_into<int16_t>(&terminfo_file)};
-  int16_t bools_size{read_into<int16_t>(&terminfo_file)};
-  int16_t numbers_size{read_into<int16_t>(&terminfo_file)};
-  int16_t offsets_size{read_into<int16_t>(&terminfo_file)};
-  int16_t strings_size{read_into<int16_t>(&terminfo_file)};
+  auto names_size{read_into<int16_t>(&terminfo_file)};
+  auto bools_size{read_into<int16_t>(&terminfo_file)};
+  auto numbers_size{read_into<int16_t>(&terminfo_file)};
+  auto offsets_size{read_into<int16_t>(&terminfo_file)};
+  auto strings_size{read_into<int16_t>(&terminfo_file)};
 
   std::string names{read_until_null(&terminfo_file)};
 
