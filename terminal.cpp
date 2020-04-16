@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "termnames.h"
+
 namespace gib::terminal {
 
 void Terminal::enable_raw_mode() {
