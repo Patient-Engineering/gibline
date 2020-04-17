@@ -16,36 +16,99 @@ const char *CLEAR = "\x1b[0K";
 
 class Cursor {
  public:
+  // Creates a new cursor
+  Cursor() : position_(), state_() {}
+
   // Put a single character at the current cursor position.
-  void put(uint8_t character) { state_.push_back(character); }
+  void put(char character) {
+    state_.insert(position_, std::string() + character);
+    position_++;
+  }
 
   // Delete a single character from current cursor position back.
   void backspace() {
-    if (!state_.empty()) {
-      state_.pop_back();
+    if (!at_beginning()) {
+      state_.erase(position_ - 1, 1);
+      position_--;
+    }
+  }
+
+  bool at_beginning() const { return position_ == 0; }
+
+  bool at_end() const { return position_ == state_.size(); }
+
+  char current() const { return state_[position_ - 1]; }
+
+  void home() { position_ = 0; }
+
+  void end() { position_ = state_.size(); }
+
+  // Move forward a word from the cursor position.
+  void word_forward() {
+    while (!at_end()) {
+      if (current() != ' ') {
+        break;
+      }
+      right();
+    }
+    while (!at_beginning()) {
+      if (current() == ' ') {
+        break;
+      }
+      right();
+    }
+  }
+
+  // Move back a word from the cursor position.
+  void word_back() {
+    while (!at_beginning()) {
+      if (current() != ' ') {
+        break;
+      }
+      left();
+    }
+    while (!at_beginning()) {
+      if (current() == ' ') {
+        break;
+      }
+      left();
     }
   }
 
   // Clear a word back from the cursor position.
   void clear_word() {
-    while (!state_.empty()) {
-      if (state_.back() != ' ') {
+    while (!at_beginning()) {
+      if (current() != ' ') {
         break;
       }
-      state_.pop_back();
+      backspace();
     }
-    while (!state_.empty()) {
-      if (state_.back() == ' ') {
+    while (!at_beginning()) {
+      if (current() == ' ') {
         break;
       }
-      state_.pop_back();
+      backspace();
     }
   }
 
   // Clear back from the cursor position to beginning of the line.
   void clear_to_start() {
-    while (!state_.empty()) {
-      state_.pop_back();
+    while (!at_beginning()) {
+      backspace();
+    }
+  }
+
+  size_t position() const { return position_; }
+
+  void left() {
+    if (!at_beginning()) {
+      position_--;
+    }
+  }
+
+  void right() {
+    if (!at_end()) {
+      position_++;
     }
   }
 
@@ -56,6 +119,7 @@ class Cursor {
   void reset(const std::string &&to) { state_ = std::move(to); }
 
  private:
+  size_t position_;
   std::string state_;
 };
 
@@ -114,7 +178,13 @@ void redraw(const Cursor &cursor, std::string_view prompt,
   term->write(tinfo.query_string("carriage_return"));
   term->write(tinfo.query_string("clr_eol"));
   term->write(prompt);
-  term->write(cursor.line());
+  for (size_t i = 0; i < cursor.line().size(); i++) {
+    if (i == cursor.position()) {
+      term->write("_");
+    } else {
+      term->write(cursor.line()[i]);
+    }
+  }
 }
 
 }  // namespace
@@ -148,16 +218,30 @@ std::string line(std::string_view prompt) {
       case 23:  // C-W
         cursor.clear_word();
         break;
+      case 98:  // M-B
+        cursor.word_back();
+        break;
       case 27:  // control
         mod = term->read();
-        if (mod != 91) {
-          break;
-        }
-        value = term->read();
-        if (value == 65) {  // up arrow
-          cursor.reset(state.history_back());
-        } else if (value == 66) {  // down arrow
-          cursor.reset(state.history_forward());
+        if (mod == 91) {
+          value = term->read();
+          if (value == 65) {  // up arrow
+            cursor.reset(state.history_back());
+          } else if (value == 66) {  // down arrow
+            cursor.reset(state.history_forward());
+          } else if (value == 67) {  // right arrow
+            cursor.right();
+          } else if (value == 68) {  // left arrow
+            cursor.left();
+          }
+        } else if (mod == 'f') {  // M-f
+          cursor.word_forward();
+        } else if (mod == 'b') {  // M-b
+          cursor.word_back();
+        } else if (mod == 'a') {  // M-a
+          cursor.home();
+        } else if (mod == 'e') {  // M-e
+          cursor.end();
         }
         break;
       default:
